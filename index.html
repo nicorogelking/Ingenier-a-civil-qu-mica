@@ -1,1 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan de Carrera - Ingeniería Química</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
 
+        .semester-card {
+            transition: all 0.3s ease;
+        }
+
+        .course-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-left: 4px solid #cbd5e1;
+        }
+
+        .course-item.completed {
+            background-color: #f0fdf4;
+            border-left-color: #22c55e;
+            text-decoration: none;
+        }
+
+        .course-item.completed .check-icon {
+            color: #22c55e;
+            display: block;
+        }
+
+        .course-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">Plan de Carrera</h1>
+                <p class="text-slate-500">Malla Curricular - Ingeniería Química</p>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 w-full md:w-96">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-semibold text-slate-700">Progreso Total</span>
+                    <span id="progress-percent" class="text-sm font-bold text-blue-600">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-3">
+                    <div id="progress-fill" class="progress-bar bg-blue-500 h-3 rounded-full" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-slate-400 mt-2 text-right">
+                    <span id="completed-count">0</span> de <span id="total-count">0</span> ramos aprobados
+                </p>
+            </div>
+        </header>
+
+        <!-- Filtros Rápidos -->
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <button onclick="filterCourses('all')" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700">Todos</button>
+            <button onclick="filterCourses('pending')" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50">Pendientes</button>
+            <button onclick="filterCourses('completed')" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50">Aprobados</button>
+            <button onclick="resetApp()" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 ml-auto">Reiniciar</button>
+        </div>
+
+        <!-- Malla Grid -->
+        <div id="malla-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Los semestres se cargarán aquí vía JS -->
+        </div>
+
+        <!-- Footer Info -->
+        <footer class="mt-12 pt-8 border-t border-slate-200 text-center text-slate-400 text-sm">
+            <p>© 2024 Visualizador de Malla Curricular. Haz clic en un ramo para marcarlo como aprobado.</p>
+        </footer>
+    </div>
+
+    <!-- Script de Datos y Lógica -->
+    <script>
+        const mallaData = [
+            {
+                semestre: "1° Semestre",
+                ramos: [
+                    { id: "EFI100", nombre: "Educación Física I" },
+                    { id: "FIS100", nombre: "Introducción a la Física" },
+                    { id: "IWG101", nombre: "Introducción a la Ingeniería" },
+                    { id: "MAT021", nombre: "Matemática I" },
+                    { id: "QUI010", nombre: "Química y Sociedad" }
+                ]
+            },
+            {
+                semestre: "2° Semestre",
+                ramos: [
+                    { id: "EFI101", nombre: "Educación Física II" },
+                    { id: "FIS110", nombre: "Física General I" },
+                    { id: "HRW1", nombre: "Humanístico I" },
+                    { id: "MAT022", nombre: "Matemática II" },
+                    { id: "IWI131", nombre: "Programación" }
+                ]
+            },
+            {
+                semestre: "3° Semestre",
+                ramos: [
+                    { id: "FIS120", nombre: "Física General II" },
+                    { id: "HRW2", nombre: "Humanístico II" },
+                    { id: "HCW100", nombre: "Inglés 1" },
+                    { id: "MAT023", nombre: "Matemáticas III" },
+                    { id: "QUI026", nombre: "Química Básica" },
+                    { id: "IQA010", nombre: "Taller de Ingeniería Química I" }
+                ]
+            },
+            {
+                semestre: "4° Semestre",
+                ramos: [
+                    { id: "IQA126", nombre: "Balance de Materia" },
+                    { id: "ICS733", nombre: "Economía I-A" },
+                    { id: "HCW101", nombre: "Inglés 2" },
+                    { id: "MAT024", nombre: "Matemáticas IV" },
+                    { id: "QUI027", nombre: "Química Inorgánica" }
+                ]
+            },
+            {
+                semestre: "5° Semestre",
+                ramos: [
+                    { id: "IQA264", nombre: "Ingeniería Ambiental" },
+                    { id: "HCW102", nombre: "Inglés 3" },
+                    { id: "IQA221", nombre: "Mecánica de Sistemas Fluidos" },
+                    { id: "QUI028", nombre: "Química Orgánica" },
+                    { id: "IQA020", nombre: "Taller de Ingeniería Química II" },
+                    { id: "IQA211", nombre: "Termodinámica de Procesos" }
+                ]
+            },
+            {
+                semestre: "6° Semestre",
+                ramos: [
+                    { id: "MEC144", nombre: "Dibujo de Ingeniería de Procesos" },
+                    { id: "IQA230", nombre: "Fenómenos de Transporte" },
+                    { id: "HCW200", nombre: "Inglés 4" },
+                    { id: "IQA212", nombre: "Termodinámica para Ingeniería Química" },
+                    { id: "IQA222", nombre: "Transferencia de Calor" }
+                ]
+            },
+            {
+                semestre: "7° Semestre",
+                ramos: [
+                    { id: "IQA214", nombre: "Análisis y Diseño de Experimentos Industriales" },
+                    { id: "IWN270", nombre: "Información y Control Financiero" },
+                    { id: "IQA270", nombre: "Maquinaria Industrial Auxiliar" },
+                    { id: "ILC204", nombre: "Metalurgia y Materiales" },
+                    { id: "IQA030", nombre: "Taller de Ingeniería Química III" },
+                    { id: "IQA224", nombre: "Transferencia de Materia" }
+                ]
+            },
+            {
+                semestre: "8° Semestre",
+                ramos: [
+                    { id: "MEC286", nombre: "Elementos del Diseño Mecánico" },
+                    { id: "FIS140", nombre: "Física General IV" },
+                    { id: "IQA350", nombre: "Fundamentos de Control Industrial" },
+                    { id: "IQA261", nombre: "Ingeniería de Reactores" },
+                    { id: "IQA040", nombre: "Taller de Ingeniería Química IV" }
+                ]
+            },
+            {
+                semestre: "9° Semestre",
+                ramos: [
+                    { id: "IQA371", nombre: "Análisis de Procesos Químicos" },
+                    { id: "IQA1", nombre: "Electivo de Especialidad I" },
+                    { id: "IQA2", nombre: "Electivo de Especialidad II" },
+                    { id: "IQAFI1", nombre: "Electivo de Formación Integral I" },
+                    { id: "IQA228", nombre: "Laboratorio de Procesos" },
+                    { id: "IQA050", nombre: "Taller de Ingeniería Química V" }
+                ]
+            },
+            {
+                semestre: "10° Semestre",
+                ramos: [
+                    { id: "IQA314", nombre: "Admin. de la Producción y Calidad" },
+                    { id: "IQA341", nombre: "Diseño de Procesos" },
+                    { id: "IQA3", nombre: "Electivo de Especialidad III" },
+                    { id: "IQA4", nombre: "Electivo de Especialidad IV" },
+                    { id: "IQAFI2", nombre: "Electivo de Formación Integral II" },
+                    { id: "IQA381", nombre: "Proyectos" }
+                ]
+            },
+            {
+                semestre: "11° Semestre",
+                ramos: [
+                    { id: "IQA5", nombre: "Electivo de Especialidad V" },
+                    { id: "IQAFI3", nombre: "Electivo de Formación Integral III" },
+                    { id: "HRW3", nombre: "Humanístico III" },
+                    { id: "IQA342", nombre: "Personas y Org. en la Industria" },
+                    { id: "IQA382", nombre: "Proyectos Específicos" },
+                    { id: "IQA391", nombre: "Titulación I" }
+                ]
+            },
+            {
+                semestre: "12° Semestre",
+                ramos: [
+                    { id: "IQA6", nombre: "Electivo de Especialidad VI" },
+                    { id: "IQA392", nombre: "Titulación II" }
+                ]
+            }
+        ];
+
+        // Estado de la aplicación
+        let completedCourses = JSON.parse(localStorage.getItem('completed_courses')) || [];
+
+        function init() {
+            renderMalla();
+            updateProgress();
+        }
+
+        function renderMalla() {
+            const container = document.getElementById('malla-container');
+            container.innerHTML = '';
+
+            mallaData.forEach((sem, index) => {
+                const semesterDiv = document.createElement('div');
+                semesterDiv.className = 'semester-card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden';
+                
+                let ramosHtml = sem.ramos.map(ramo => {
+                    const isCompleted = completedCourses.includes(ramo.id);
+                    return `
+                        <div onclick="toggleCourse('${ramo.id}')" 
+                             id="course-${ramo.id}"
+                             class="course-item p-3 border-b border-slate-100 flex items-center justify-between ${isCompleted ? 'completed' : ''}">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${ramo.id}</span>
+                                <span class="text-sm font-medium text-slate-700 leading-tight">${ramo.nombre}</span>
+                            </div>
+                            <i class="fa-solid fa-circle-check check-icon text-green-500 ${isCompleted ? '' : 'hidden'}"></i>
+                        </div>
+                    `;
+                }).join('');
+
+                semesterDiv.innerHTML = `
+                    <div class="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide">${sem.semestre}</h3>
+                    </div>
+                    <div>${ramosHtml}</div>
+                `;
+                container.appendChild(semesterDiv);
+            });
+        }
+
+        function toggleCourse(id) {
+            const index = completedCourses.indexOf(id);
+            if (index > -1) {
+                completedCourses.splice(index, 1);
+            } else {
+                completedCourses.push(id);
+            }
+            
+            localStorage.setItem('completed_courses', JSON.stringify(completedCourses));
+            
+            // Animación y feedback visual rápido
+            const el = document.getElementById(`course-${id}`);
+            el.classList.toggle('completed');
+            el.querySelector('.check-icon').classList.toggle('hidden');
+            
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const totalRamos = mallaData.reduce((acc, sem) => acc + sem.ramos.length, 0);
+            const completedCount = completedCourses.length;
+            const percent = Math.round((completedCount / totalRamos) * 100);
+
+            document.getElementById('progress-percent').innerText = `${percent}%`;
+            document.getElementById('progress-fill').style.width = `${percent}%`;
+            document.getElementById('completed-count').innerText = completedCount;
+            document.getElementById('total-count').innerText = totalRamos;
+        }
+
+        function filterCourses(type) {
+            const items = document.querySelectorAll('.course-item');
+            items.forEach(item => {
+                const isCompleted = item.classList.contains('completed');
+                if (type === 'all') item.style.opacity = '1';
+                else if (type === 'completed') item.style.opacity = isCompleted ? '1' : '0.3';
+                else if (type === 'pending') item.style.opacity = !isCompleted ? '1' : '0.3';
+            });
+        }
+
+        function resetApp() {
+            if(confirm('¿Estás seguro de que quieres reiniciar todo tu progreso?')) {
+                completedCourses = [];
+                localStorage.removeItem('completed_courses');
+                init();
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
